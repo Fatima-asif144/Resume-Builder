@@ -6,7 +6,7 @@ import {
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getDatabase, ref, set, get, } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCh5WVAxWrc05uKq7fmrX5DsNohoEn79X0",
@@ -17,7 +17,7 @@ const firebaseConfig = {
     messagingSenderId: "32730136033",
     appId: "1:32730136033:web:424013494ddcb2b4cda6a0",
     measurementId: "G-SFZTQSR30G"
-  };
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -66,14 +66,14 @@ if (loginForm) {
     const pass = document.getElementById('login-password').value;
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      swal('Welcome Back 💗','User LoggedIn Successfully✅','success')
+      swal('Welcome Back 💗','User LoggedIn Successfully✅','success');
     } catch (error) {
       swal({
-        title: 'Opps! , Something Went wrong ❌' ,
+        title: 'Opps! , Something Went wrong ❌',
         text: error.message,
         icon: 'error'
-       })
-      }
+      });
+    }
   });
 }
 
@@ -86,15 +86,16 @@ if (signupForm) {
     try {
       await createUserWithEmailAndPassword(auth, email, pass);
       swal({
-        title: 'Congratulations 🎉' ,
-        text: 'SignUp Successfully!' ,
-        icon: 'success'})
+        title: 'Congratulations 🎉',
+        text: 'SignUp Successfully!',
+        icon: 'success'
+      });
     } catch (error) {
       swal({
-        title: 'Opps! , Something Went wrong ❌' ,
+        title: 'Opps! , Something Went wrong ❌',
         text: error.message,
         icon: 'error'
-       })
+      });
     }
   });
 }
@@ -102,16 +103,31 @@ if (signupForm) {
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
       swal({
-        title:'LogOut Successfully ✅',
+        title: 'LogOut Successfully ✅',
         icon: 'info'
       });
-      setTimeout(()=>{
-    },2500);
-    })
-    console.log('Error:' , error.message);
-  
+    } catch (error) {
+      console.log('Error:', error.message);
+    }
+  });
+}
+
+// Global Remove Item Function
+window.removeItem = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  window.updatePreview();
+};
+
+// Helper function to attach input listeners to inputs in dynamic cards
+function bindDynamicInputs(container) {
+  container.querySelectorAll('input, textarea').forEach(el => {
+    el.removeEventListener('input', window.updatePreview);
+    el.addEventListener('input', window.updatePreview);
+  });
 }
 
 // Dynamic Input Functions
@@ -133,8 +149,7 @@ window.addExperienceField = function(data = null) {
     </div>
   `;
   container.appendChild(div);
-  
-  div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', window.updatePreview));
+  bindDynamicInputs(div);
   window.updatePreview();
 };
 
@@ -155,8 +170,7 @@ window.addEducationField = function(data = null) {
     </div>
   `;
   container.appendChild(div);
-
-  div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', window.updatePreview));
+  bindDynamicInputs(div);
   window.updatePreview();
 };
 
@@ -177,14 +191,7 @@ window.addProjectField = function(data = null) {
     </div>
   `;
   container.appendChild(div);
-
-  div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', window.updatePreview));
-  window.updatePreview();
-};
-
-window.removeItem = function(id) {
-  const el = document.getElementById(id);
-  if (el) el.remove();
+  bindDynamicInputs(div);
   window.updatePreview();
 };
 
@@ -309,7 +316,6 @@ window.saveToDatabase = async function() {
     return;
   }
 
-  // Array elements collection
   const experiences = [];
   document.querySelectorAll('#experience-list-inputs .dynamic-card').forEach(card => {
     experiences.push({
@@ -372,7 +378,6 @@ async function loadUserData(userId) {
     if (snapshot.exists()) {
       const data = snapshot.val();
       
-      // Populate fields
       if (data.personalInfo) {
         const info = data.personalInfo;
         if (document.getElementById('res-name')) document.getElementById('res-name').value = info.name || '';
@@ -387,7 +392,6 @@ async function loadUserData(userId) {
         if (document.getElementById('res-skills')) document.getElementById('res-skills').value = info.skills || '';
       }
 
-      // Populate array items
       const expContainer = document.getElementById('experience-list-inputs');
       if (expContainer && data.experiences && data.experiences.length > 0) {
         expContainer.innerHTML = '';
@@ -437,8 +441,14 @@ window.downloadPDF = function() {
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
+  // Bind standard static input changes to update preview automatically
+  document.querySelectorAll('input, textarea').forEach(input => {
+    input.addEventListener('input', window.updatePreview);
+  });
+
   if (!document.querySelectorAll('#experience-list-inputs .dynamic-card').length) window.addExperienceField();
   if (!document.querySelectorAll('#education-list-inputs .dynamic-card').length) window.addEducationField();
   if (!document.querySelectorAll('#project-list-inputs .dynamic-card').length) window.addProjectField();
+  
   window.updatePreview();
 });
